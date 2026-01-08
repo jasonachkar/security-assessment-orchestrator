@@ -1,0 +1,47 @@
+    name: security-assessment-orchestrator
+    services:
+  api:
+    build: .
+    env_file: .env
+    ports:
+      - "8082:8082"
+    depends_on:
+      db:
+        condition: service_healthy
+redis:
+  condition: service_started
+  command: ["sh", "scripts/bootstrap.sh", "uvicorn", "security_assessment_orchestrator.api.main:app", "--host", "0.0.0.0", "--port", "8082"]
+
+db:
+  image: postgres:16
+  environment:
+    POSTGRES_USER: security-assessment-orchestrator
+    POSTGRES_PASSWORD: security-assessment-orchestrator
+    POSTGRES_DB: security-assessment-orchestrator
+  ports:
+    - "9082:5432"
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U security-assessment-orchestrator -d security-assessment-orchestrator"]
+    interval: 5s
+    timeout: 5s
+    retries: 20
+  volumes:
+    - dbdata:/var/lib/postgresql/data
+redis:
+  image: redis:7
+  ports:
+    - "10082:6379"
+
+worker:
+  build: .
+  env_file: .env
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+  command: ["python", "-m", "security_assessment_orchestrator.workers.worker"]
+
+
+    volumes:
+      dbdata:
