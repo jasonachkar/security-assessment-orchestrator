@@ -18,8 +18,7 @@ class Settings(BaseSettings):
 
     # Optional
     redis_url: str | None = None
-
-        zap_base_url: str = 'http://zap:8090'
+    zap_base_url: str = 'http://zap:8090'
 
     def allowed_targets_list(self) -> list[str]:
         return [t.strip() for t in self.allowed_targets.split(",") if t.strip()]

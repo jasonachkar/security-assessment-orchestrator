@@ -9,13 +9,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml /app/pyproject.toml
-RUN pip install --no-cache-dir -U pip && pip install --no-cache-dir -e ".[dev]"
+# Copy shared package first
+COPY shared-security-core /app/shared-security-core
 
-COPY src /app/src
-COPY alembic.ini /app/alembic.ini
-COPY alembic /app/alembic
-COPY scripts /app/scripts
+COPY security-assessment-orchestrator/pyproject.toml /app/pyproject.toml
+COPY security-assessment-orchestrator/src /app/src
+RUN pip install --no-cache-dir -U pip && pip install --no-cache-dir -e ".[dev]"
+COPY security-assessment-orchestrator/alembic.ini /app/alembic.ini
+COPY security-assessment-orchestrator/alembic /app/alembic
+COPY security-assessment-orchestrator/scripts /app/scripts
 
 EXPOSE 8082
 
